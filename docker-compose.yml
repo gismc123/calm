@@ -1,0 +1,7 @@
+services:
+  calm-down-app:
+    build: .
+    container_name: calm-down-app
+    ports:
+      - "901:80"
+    restart: unless-stopped

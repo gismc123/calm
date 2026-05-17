@@ -163,6 +163,33 @@ const TOOLS = [
     time: '5–10 min',
     description: 'An open-ended space to externalize and process what you are feeling.',
     stressWeight: { high: 3, moderate: 6, low: 9 }
+  },
+  {
+    id: 'grounding',
+    name: '5-Senses Grounding',
+    categories: ['mental', 'physical'],
+    categoryLabels: ['Mental', 'Physical'],
+    time: '2–3 min',
+    description: 'Anchor yourself to the present moment by slowly going through each of your five senses.',
+    stressWeight: { high: 9, moderate: 7, low: 4 }
+  },
+  {
+    id: 'nutrition',
+    name: 'Nutrition Quick Guide',
+    categories: ['physical'],
+    categoryLabels: ['Physical'],
+    time: '2 min',
+    description: 'Evidence-based eating tips to stabilize your body and mind when stress affects your appetite.',
+    stressWeight: { high: 3, moderate: 5, low: 8 }
+  },
+  {
+    id: 'mindfulness',
+    name: 'Mindfulness Check-In',
+    categories: ['mental', 'emotional'],
+    categoryLabels: ['Mental', 'Emotional'],
+    time: '3–5 min',
+    description: 'Turn toward what you\'re feeling with curiosity instead of fighting it — lean in and let the wave pass.',
+    stressWeight: { high: 5, moderate: 8, low: 7 }
   }
 ];
 
@@ -203,7 +230,8 @@ const state = {
   safetyShown: false,
   currentTool: null,
   recommendedToolIds: [],
-  activeTimers: []
+  activeTimers: [],
+  quickSession: false
 };
 
 // ============================================================
@@ -234,6 +262,26 @@ function stressBand(level) {
   if (level >= 7) return 'high';
   if (level >= 4) return 'moderate';
   return 'low';
+}
+
+// ============================================================
+// THEME
+// ============================================================
+
+function applyTheme(name) {
+  document.documentElement.setAttribute('data-theme', name);
+  document.querySelectorAll('.theme-swatch').forEach(s => {
+    s.classList.toggle('theme-swatch--active', s.dataset.theme === name);
+  });
+  localStorage.setItem('calm-theme', name);
+}
+
+function initTheme() {
+  const saved = localStorage.getItem('calm-theme') || 'midnight';
+  applyTheme(saved);
+  document.querySelectorAll('.theme-swatch').forEach(swatch => {
+    swatch.addEventListener('click', () => applyTheme(swatch.dataset.theme));
+  });
 }
 
 // ============================================================
@@ -454,6 +502,7 @@ function renderPlan() {
   toggle.querySelector('.toggle-chevron').style.transform = '';
 
   renderSuggestedTool();
+  renderNextTools();
   renderProgressPanel();
 }
 
@@ -464,6 +513,52 @@ function selectTool(toolId) {
   }
   renderTool(toolId);
   showScreen('screen-tool');
+}
+
+function renderNextTools() {
+  const panel = $('next-tools-panel');
+  if (!panel) return;
+
+  if (!state.stressLevel) {
+    panel.classList.add('hidden');
+    return;
+  }
+
+  const suggestion = getCurrentSuggestion();
+  const allSorted = getRecommendedTools();
+  const next = allSorted.filter(t => t.id !== suggestion?.id).slice(0, 3);
+
+  if (next.length === 0) {
+    panel.classList.add('hidden');
+    return;
+  }
+
+  panel.classList.remove('hidden');
+  panel.innerHTML = `
+    <hr class="next-tools-divider">
+    <p class="next-tools-heading">Also recommended</p>
+    <div class="next-tools-list">
+      ${next.map(t => {
+        const badgesHTML = t.categoryLabels.map(label => {
+          const cls = label.toLowerCase().replace(/[^a-z]/g, '');
+          return `<span class="badge badge--${cls}" style="font-size:10px;padding:2px 7px">${label}</span>`;
+        }).join('');
+        return `
+          <button class="next-tool-card" data-tool-id="${t.id}" aria-label="Start ${t.name}">
+            <div class="next-tool-info">
+              <span class="next-tool-name">${t.name}</span>
+              <div class="next-tool-badges">${badgesHTML}</div>
+            </div>
+            <span class="next-tool-time">${t.time}</span>
+            <span class="next-tool-arrow">→</span>
+          </button>`;
+      }).join('')}
+    </div>
+  `;
+
+  panel.querySelectorAll('.next-tool-card').forEach(card => {
+    card.addEventListener('click', () => selectTool(card.dataset.toolId));
+  });
 }
 
 // ============================================================
@@ -487,7 +582,10 @@ function renderTool(toolId) {
     'values':             renderValues,
     'sleep':              renderSleep,
     'movement':           renderMovement,
-    'journaling':         renderJournaling
+    'journaling':         renderJournaling,
+    'grounding':          renderGrounding,
+    'nutrition':          renderNutrition,
+    'mindfulness':        renderMindfulness
   };
 
   const renderer = renderers[toolId];
@@ -1502,8 +1600,195 @@ function renderJournaling(container) {
 }
 
 // ============================================================
+// TOOL 14: 5-SENSES GROUNDING
+// ============================================================
+
+function renderGrounding(container) {
+  const senses = [
+    { label: '5 — See',   prompt: 'Look around slowly. Name 5 things you can see right now.', placeholder: 'A lamp, the wall, my hands, a window, a cup...' },
+    { label: '4 — Touch', prompt: 'Notice 4 things you can physically feel — texture, weight, temperature.', placeholder: 'The floor under my feet, the chair beneath me...' },
+    { label: '3 — Hear',  prompt: 'Listen quietly. What are 3 sounds you can hear right now?', placeholder: 'Traffic outside, my own breathing, the fan...' },
+    { label: '2 — Smell', prompt: 'Take a slow breath through your nose. Name 2 things you can smell, even faintly.', placeholder: 'Coffee, fresh air, nothing in particular...' },
+    { label: '1 — Taste', prompt: 'What do you taste right now, even the faintest trace?', placeholder: 'Water, toothpaste, nothing at all...' }
+  ];
+
+  let step = 0;
+
+  function render() {
+    const isLast = step === senses.length;
+    container.innerHTML = `
+      <div class="tool-header">
+        <h2 class="tool-title">5-Senses Grounding</h2>
+        ${step === 0 ? `<p class="step-framing" style="margin-top:8px">You are here. Right now. Let's prove that to your nervous system — one sense at a time.</p>` : ''}
+      </div>
+      ${!isLast ? `
+        <div class="step-card" style="margin-bottom:16px">
+          <p class="step-number">${senses[step].label}</p>
+          <p class="step-prompt">${senses[step].prompt}</p>
+        </div>
+        <textarea class="tool-input" placeholder="${senses[step].placeholder}" rows="3"></textarea>
+        <button class="btn--advance mt-md" id="gs-next">
+          ${step < senses.length - 1 ? 'Next sense →' : 'Finish'}
+        </button>
+      ` : `
+        <div class="affirmation-card">
+          <p class="affirmation-text">You just proved to your brain that you are safe right now — in this moment, in this place.</p>
+        </div>
+      `}
+    `;
+    if (!isLast) {
+      $('gs-next').addEventListener('click', () => { step++; render(); });
+    }
+  }
+  render();
+}
+
+// ============================================================
+// TOOL 15: NUTRITION QUICK GUIDE
+// ============================================================
+
+function renderNutrition(container) {
+  const tips = [
+    'Eat something — even small. Your brain needs glucose to think and process emotions.',
+    'Prioritize protein: eggs, chicken, Greek yogurt, legumes. It stabilizes blood sugar and mood.',
+    'Choose whole foods over comfort foods. Processed food spikes then crashes your blood sugar, worsening anxiety.',
+    'Aim for 3 meals today. Skipping meals raises cortisol and makes everything feel harder.',
+    'Limit sugar and refined carbs — they feel comforting in the moment but intensify emotional swings.',
+    'Limit or skip alcohol. It disrupts sleep and keeps cortisol elevated — the opposite of calm.',
+    'Drink water. Dehydration worsens anxiety, brain fog, and emotional dysregulation.'
+  ];
+
+  container.innerHTML = `
+    <div class="tool-header">
+      <h2 class="tool-title">Nutrition Guide</h2>
+      <p class="tool-subtitle">Tap each item to check it off</p>
+    </div>
+    <div class="checklist-items">
+      ${tips.map((tip, i) => `
+        <button class="checklist-item" data-idx="${i}" aria-pressed="false">
+          <span class="checklist-check" id="ncheck-${i}"></span>
+          <span class="checklist-text">${tip}</span>
+        </button>
+      `).join('')}
+    </div>
+    <div class="sleep-note">
+      When your body is undernourished, it is incredibly difficult to think clearly. Feeding yourself is not a luxury right now — it is a calming intervention.
+    </div>
+  `;
+
+  container.querySelectorAll('.checklist-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const isChecked = item.classList.toggle('checklist-item--checked');
+      item.setAttribute('aria-pressed', isChecked ? 'true' : 'false');
+      item.querySelector('.checklist-check').textContent = isChecked ? '✓' : '';
+    });
+  });
+}
+
+// ============================================================
+// TOOL 16: MINDFULNESS CHECK-IN
+// ============================================================
+
+function renderMindfulness(container) {
+  let step = 0;
+
+  function render() {
+    if (step === 0) {
+      container.innerHTML = `
+        <div class="tool-header">
+          <h2 class="tool-title">Mindfulness Check-In</h2>
+          <p class="step-framing" style="margin-top:8px">You don't have to fix what you're feeling. Just notice it. That is the whole practice.</p>
+        </div>
+        <div class="step-card" style="margin-bottom:16px">
+          <p class="step-number">Step 1 of 4 — Settle</p>
+          <p class="step-prompt">Find a comfortable position. Close your eyes if you'd like.</p>
+          <p class="step-subtext">Take three slow, deep breaths before continuing.</p>
+        </div>
+        <button class="btn--advance" id="mf-next-1">I've taken three breaths →</button>
+      `;
+      $('mf-next-1').addEventListener('click', () => { step++; render(); });
+
+    } else if (step === 1) {
+      container.innerHTML = `
+        <div class="tool-header">
+          <h2 class="tool-title">Mindfulness Check-In</h2>
+        </div>
+        <div class="step-card" style="margin-bottom:16px">
+          <p class="step-number">Step 2 of 4 — Notice</p>
+          <p class="step-prompt">What emotion is present right now?</p>
+          <p class="step-subtext">Don't judge it. Don't fix it. Just name it like you're naming weather outside.</p>
+        </div>
+        <textarea class="tool-input" placeholder="e.g. Dread. Sadness. Rage. Numbness. Anxiety. Relief. Nothing." rows="3"></textarea>
+        <button class="btn--advance mt-md" id="mf-next-2">Next →</button>
+      `;
+      $('mf-next-2').addEventListener('click', () => { step++; render(); });
+
+    } else if (step === 2) {
+      container.innerHTML = `
+        <div class="tool-header">
+          <h2 class="tool-title">Mindfulness Check-In</h2>
+        </div>
+        <div class="step-card" style="margin-bottom:16px">
+          <p class="step-number">Step 3 of 4 — Get Curious</p>
+          <p class="step-prompt">Where do you feel this in your body?</p>
+          <p class="step-subtext">A tight chest? Heavy shoulders? Pit in your stomach? Describe the sensation, not the story.</p>
+        </div>
+        <textarea class="tool-input" placeholder="Describe what you physically feel, not what happened or why." rows="3"></textarea>
+        <button class="btn--advance mt-md" id="mf-next-3">Next →</button>
+      `;
+      $('mf-next-3').addEventListener('click', () => { step++; render(); });
+
+    } else if (step === 3) {
+      let holdCount = 60;
+      container.innerHTML = `
+        <div class="tool-header">
+          <h2 class="tool-title">Mindfulness Check-In</h2>
+        </div>
+        <div class="step-card" style="margin-bottom:16px">
+          <p class="step-number">Step 4 of 4 — Ride the Wave</p>
+          <p class="step-prompt">Just sit with it for 60 seconds. Don't fight it or feed it.</p>
+          <p class="step-subtext">Watch the feeling like a wave. Let it rise, peak, and begin to fall on its own.</p>
+        </div>
+        <div class="prayer-hold-screen">
+          <div class="resourcing-pulse" style="width:110px;height:110px;margin:0 auto 24px"></div>
+          <div class="hold-timer" id="mf-hold-count">${holdCount}</div>
+          <p class="hold-label">Just notice. You don't have to do anything.</p>
+        </div>
+      `;
+      const holdEl = $('mf-hold-count');
+      const id = setInterval(() => {
+        holdCount--;
+        holdEl.textContent = holdCount;
+        if (holdCount <= 0) {
+          clearInterval(id);
+          step++;
+          render();
+        }
+      }, 1000);
+      addTimer(id);
+
+    } else {
+      container.innerHTML = `
+        <div class="tool-header">
+          <h2 class="tool-title">Mindfulness Check-In</h2>
+        </div>
+        <div class="affirmation-card">
+          <p class="affirmation-text">You leaned in instead of running. That takes more courage than most people realize.</p>
+        </div>
+      `;
+    }
+  }
+  render();
+}
+
+// ============================================================
 // SUGGESTED TOOL BANNER
 // ============================================================
+
+function getCurrentSuggestion() {
+  const allSorted = getRecommendedTools();
+  return allSorted.find(t => !state.toolsUsed.includes(t.id)) || allSorted[0];
+}
 
 function renderSuggestedTool() {
   const banner = $('suggested-tool-banner');
@@ -1743,14 +2028,31 @@ function wireEvents() {
   // Screen 4
   $('back-tool').addEventListener('click', () => {
     clearTimers();
-    renderSuggestedTool();
-    renderProgressPanel();
-    showScreen('screen-plan');
+    if (state.quickSession) {
+      state.quickSession = false;
+      showScreen('screen-checkin');
+    } else {
+      renderSuggestedTool();
+      renderNextTools();
+      renderProgressPanel();
+      showScreen('screen-plan');
+    }
   });
 
   $('btn-done-tool').addEventListener('click', () => {
     clearTimers();
-    showCompletionOverlay();
+    if (state.quickSession) {
+      state.quickSession = false;
+      showScreen('screen-checkin');
+    } else {
+      showCompletionOverlay();
+    }
+  });
+
+  // Quick breathing shortcut on check-in screen
+  $('btn-quick-breathing').addEventListener('click', () => {
+    state.quickSession = true;
+    selectTool('box-breathing');
   });
 
   // Completion overlay — page 1
@@ -1772,6 +2074,7 @@ function wireEvents() {
     $('overlay-checkin-page').classList.add('hidden');
     hideCompletionOverlay();
     renderSuggestedTool();
+    renderNextTools();
     renderProgressPanel();
     showScreen('screen-plan');
   });
@@ -1803,6 +2106,7 @@ function resetSession() {
   state.safetyShown = false;
   state.currentTool = null;
   state.recommendedToolIds = [];
+  state.quickSession = false;
 
   // Reset stress scale
   document.querySelectorAll('.stress-btn').forEach(btn => {
@@ -1821,6 +2125,7 @@ function resetSession() {
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
   initStressScale();
   wireEvents();
   initPWA();

@@ -30,7 +30,14 @@
   <!-- ===== SCREEN 1: STRESS CHECK-IN ===== -->
   <div id="screen-checkin" class="screen screen--active" role="main">
     <div class="screen-inner">
-      <div class="app-wordmark">Calm Down</div>
+      <div class="app-header-row">
+        <div class="app-wordmark">Calm Down</div>
+        <div class="theme-picker" id="theme-picker" role="group" aria-label="Choose color theme">
+          <button class="theme-swatch theme-swatch--midnight" data-theme="midnight" aria-label="Midnight theme" title="Midnight"></button>
+          <button class="theme-swatch theme-swatch--forest"   data-theme="forest"   aria-label="Forest theme"   title="Forest"></button>
+          <button class="theme-swatch theme-swatch--ember"    data-theme="ember"    aria-label="Ember theme"    title="Ember"></button>
+        </div>
+      </div>
       <header class="screen-header">
         <h1>How are you feeling right now?</h1>
       </header>
@@ -49,6 +56,7 @@
 
       <p class="hint-text">You don't have to know why. Just pick the number that feels right.</p>
       <button class="btn btn--primary" id="btn-continue-checkin" disabled aria-disabled="true">Continue</button>
+      <button class="btn btn--ghost" id="btn-quick-breathing">Start a breathing session now →</button>
     </div>
   </div>
 
@@ -99,6 +107,7 @@
         <p class="subhead">Start with just one. You do not need to do them all.</p>
       </header>
       <div class="suggested-tool-banner hidden" id="suggested-tool-banner"></div>
+      <div id="next-tools-panel" class="next-tools-section hidden"></div>
       <div class="session-progress-panel hidden" id="session-progress-panel">
         <div class="session-progress-inner">
           <div class="progress-stress-row">

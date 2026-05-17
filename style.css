@@ -1,5 +1,5 @@
 /* ============================================================
-   CSS CUSTOM PROPERTIES
+   CSS CUSTOM PROPERTIES — THEME: MIDNIGHT (default)
    ============================================================ */
 :root {
   /* Backgrounds */
@@ -18,8 +18,9 @@
   --color-accent-glow:   rgba(122, 175, 160, 0.15);
 
   /* Breathing */
-  --color-breath:        #9B9FCC;
-  --color-breath-soft:   rgba(155, 159, 204, 0.12);
+  --color-breath:            #9B9FCC;
+  --color-breath-highlight:  #B4B8E0;
+  --color-breath-soft:       rgba(155, 159, 204, 0.12);
 
   /* PIES badge colors */
   --color-badge-physical:     #8A9E7A;
@@ -49,6 +50,52 @@
   --radius-md: 14px;
   --radius-lg: 20px;
   --radius-full: 9999px;
+}
+
+/* ============================================================
+   THEME: FOREST — deep greens, sage, mint
+   ============================================================ */
+[data-theme="forest"] {
+  --color-bg-base:           #182620;
+  --color-bg-surface:        #1E3028;
+  --color-bg-elevated:       #263C30;
+  --color-text-primary:      #E4EDE8;
+  --color-text-secondary:    #A8BCA8;
+  --color-text-muted:        #6A8A72;
+  --color-accent:            #7ABE96;
+  --color-accent-soft:       #4A8060;
+  --color-accent-glow:       rgba(122, 190, 150, 0.15);
+  --color-breath:            #8AB09A;
+  --color-breath-highlight:  #B4E0C8;
+  --color-breath-soft:       rgba(138, 176, 154, 0.12);
+  --color-stress-low:        #7ABE96;
+  --color-stress-mid:        #BEA060;
+  --color-stress-high:       #BE7060;
+  --color-border:            rgba(228, 237, 232, 0.08);
+  --color-overlay:           rgba(24, 38, 32, 0.88);
+}
+
+/* ============================================================
+   THEME: EMBER — warm amber, earth tones, sandstone
+   ============================================================ */
+[data-theme="ember"] {
+  --color-bg-base:           #221C18;
+  --color-bg-surface:        #2C2220;
+  --color-bg-elevated:       #382C28;
+  --color-text-primary:      #EDE4D8;
+  --color-text-secondary:    #C0AFA0;
+  --color-text-muted:        #8A7A6E;
+  --color-accent:            #C09860;
+  --color-accent-soft:       #8A6840;
+  --color-accent-glow:       rgba(192, 152, 96, 0.15);
+  --color-breath:            #C0956A;
+  --color-breath-highlight:  #E8CCAA;
+  --color-breath-soft:       rgba(192, 149, 106, 0.12);
+  --color-stress-low:        #90C47A;
+  --color-stress-mid:        #C4A060;
+  --color-stress-high:       #C46060;
+  --color-border:            rgba(237, 228, 216, 0.08);
+  --color-overlay:           rgba(34, 28, 24, 0.88);
 }
 
 /* ============================================================
@@ -133,6 +180,7 @@ input, textarea {
   transition: opacity 0.3s ease, transform 0.3s ease;
   background-color: var(--color-bg-base);
   /* Safe area for notched phones */
+  padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
@@ -161,16 +209,52 @@ input, textarea {
 }
 
 /* ============================================================
-   APP WORDMARK
+   APP WORDMARK & THEME PICKER
    ============================================================ */
+.app-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-lg);
+}
+
 .app-wordmark {
   font-size: 14px;
   font-weight: 400;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-text-muted);
-  margin-bottom: var(--spacing-lg);
 }
+
+.theme-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s;
+  padding: 0;
+  outline-offset: 3px;
+}
+
+.theme-swatch:hover {
+  transform: scale(1.15);
+}
+
+.theme-swatch--active {
+  border-color: var(--color-text-secondary);
+  transform: scale(1.15);
+}
+
+.theme-swatch--midnight { background: #7AAFA0; }
+.theme-swatch--forest   { background: #7ABE96; }
+.theme-swatch--ember    { background: #C09860; }
 
 /* ============================================================
    SCREEN HEADER
@@ -283,7 +367,7 @@ input, textarea {
 }
 
 .btn--primary:hover:not(:disabled) {
-  background: #8EC0B1;
+  filter: brightness(1.1);
 }
 
 .btn--primary:disabled,
@@ -511,7 +595,7 @@ input, textarea {
 .category-checkmark {
   width: 20px;
   height: 20px;
-  border-radius: 50%;
+  border-radius: 4px;
   border: 2px solid var(--color-border);
   display: inline-flex;
   align-items: center;
@@ -722,7 +806,7 @@ input, textarea {
   width: 180px;
   height: 180px;
   border-radius: 50%;
-  background: radial-gradient(circle at 38% 38%, #B4B8E0, var(--color-breath));
+  background: radial-gradient(circle at 38% 38%, var(--color-breath-highlight), var(--color-breath));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1573,6 +1657,93 @@ input, textarea {
   margin: var(--spacing-sm) 0;
   font-style: italic;
   text-align: center;
+}
+
+/* ============================================================
+   NEXT TOOLS PANEL (tool screen)
+   ============================================================ */
+.next-tools-section {
+  padding: var(--spacing-md) 0 var(--spacing-lg);
+}
+
+.next-tools-divider {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 0 0 var(--spacing-md) 0;
+}
+
+.next-tools-heading {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-sm);
+}
+
+.next-tools-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.next-tool-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  cursor: pointer;
+  text-align: left;
+  min-height: 50px;
+  transition: background 0.2s, border-color 0.2s, transform 0.1s;
+}
+
+.next-tool-card:hover {
+  background: var(--color-bg-elevated);
+  border-color: var(--color-accent-soft);
+}
+
+.next-tool-card:active {
+  transform: scale(0.99);
+}
+
+.next-tool-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.next-tool-name {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.next-tool-badges {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.next-tool-time {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.next-tool-arrow {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  flex-shrink: 0;
 }
 
 /* ============================================================

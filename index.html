@@ -32,10 +32,13 @@
     <div class="screen-inner">
       <div class="app-header-row">
         <div class="app-wordmark">Calm Down</div>
-        <div class="theme-picker" id="theme-picker" role="group" aria-label="Choose color theme">
-          <button class="theme-swatch theme-swatch--midnight" data-theme="midnight" aria-label="Midnight theme" title="Midnight"></button>
-          <button class="theme-swatch theme-swatch--forest"   data-theme="forest"   aria-label="Forest theme"   title="Forest"></button>
-          <button class="theme-swatch theme-swatch--ember"    data-theme="ember"    aria-label="Ember theme"    title="Ember"></button>
+        <div class="header-right">
+          <button class="btn-install-guide" id="btn-open-install-modal" aria-label="How to add to home screen">+ Home Screen</button>
+          <div class="theme-picker" id="theme-picker" role="group" aria-label="Choose color theme">
+            <button class="theme-swatch theme-swatch--midnight" data-theme="midnight" aria-label="Midnight theme" title="Midnight"></button>
+            <button class="theme-swatch theme-swatch--forest"   data-theme="forest"   aria-label="Forest theme"   title="Forest"></button>
+            <button class="theme-swatch theme-swatch--ember"    data-theme="ember"    aria-label="Ember theme"    title="Ember"></button>
+          </div>
         </div>
       </div>
       <header class="screen-header">
@@ -57,6 +60,14 @@
       <p class="hint-text">You don't have to know why. Just pick the number that feels right.</p>
       <button class="btn btn--primary" id="btn-continue-checkin" disabled aria-disabled="true">Continue</button>
       <button class="btn btn--ghost" id="btn-quick-breathing">Start a breathing session now →</button>
+      <p class="privacy-notice">Nothing you write is ever saved, recorded, or transmitted — your session lives only in this tab.</p>
+      <div class="legal-footer">
+        <button class="legal-link" id="btn-open-terms">Terms of Use</button>
+        <span class="legal-sep">·</span>
+        <button class="legal-link" id="btn-open-privacy">Privacy Policy</button>
+        <span class="legal-sep">·</span>
+        <button class="legal-link" id="btn-open-attribution">Attribution</button>
+      </div>
     </div>
   </div>
 
@@ -170,6 +181,148 @@
         <button class="btn btn--primary" id="btn-checkin-continue">Continue to plan</button>
         <button class="btn btn--ghost" id="btn-done-session-2">I'm done for now</button>
       </div>
+      <!-- Page 3: Session Summary -->
+      <div id="overlay-summary-page" class="hidden">
+        <p class="completion-msg">Your session</p>
+        <div class="session-summary-card" id="session-summary-card"></div>
+        <button class="btn btn--ghost" id="btn-summary-done">Done — start fresh</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ADD TO HOME SCREEN MODAL ===== -->
+  <div id="install-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="install-modal-title">
+    <div class="modal-backdrop" id="install-modal-backdrop"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title" id="install-modal-title">Add to Home Screen</h2>
+        <button class="modal-close" id="btn-close-install-modal" aria-label="Close">✕</button>
+      </div>
+
+      <p class="modal-subtitle">Calm Down works like a native app when installed on your phone. No app store needed.</p>
+
+      <div class="modal-privacy-notice">
+        <p><strong>Your privacy is fully protected.</strong> No data is ever saved, recorded, or transmitted by this app. Everything you write stays only in your current tab and is gone when you close it — unless you choose to download it yourself.</p>
+      </div>
+
+      <div class="install-platform">
+        <h3 class="install-platform-title">iPhone / iPad (Safari)</h3>
+        <ol class="install-steps">
+          <li>Open this page in <strong>Safari</strong> (not Chrome)</li>
+          <li>Tap the <strong>Share icon</strong> at the bottom of the screen</li>
+          <li>Scroll down and tap <strong>"Add to Home Screen"</strong></li>
+          <li>Tap <strong>"Add"</strong> in the top right corner</li>
+        </ol>
+      </div>
+
+      <div class="install-platform">
+        <h3 class="install-platform-title">Android (Chrome)</h3>
+        <ol class="install-steps">
+          <li>Open this page in <strong>Chrome</strong></li>
+          <li>Tap the <strong>three-dot menu (&#8942;)</strong> in the top right</li>
+          <li>Tap <strong>"Add to Home Screen"</strong> or <strong>"Install App"</strong></li>
+          <li>Confirm by tapping <strong>"Add"</strong></li>
+        </ol>
+      </div>
+
+      <button class="btn btn--primary" id="btn-install-modal-ok" style="margin-top:20px">Got it</button>
+    </div>
+  </div>
+
+  <!-- ===== TERMS OF USE MODAL ===== -->
+  <div id="terms-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="terms-modal-title">
+    <div class="modal-backdrop" id="terms-modal-backdrop"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title" id="terms-modal-title">Terms of Use</h2>
+        <button class="modal-close" id="btn-close-terms-modal" aria-label="Close">✕</button>
+      </div>
+      <p class="modal-subtitle">Please read these terms before using Calm Down.</p>
+
+      <div class="legal-section">
+        <h3 class="legal-heading">Not a Medical Service</h3>
+        <p class="legal-body">Calm Down is a personal wellness tool designed to support stress management and emotional regulation. It is <strong>not</strong> a medical service, mental health treatment, or clinical intervention. Nothing in this app constitutes medical advice, diagnosis, or treatment.</p>
+      </div>
+
+      <div class="legal-section">
+        <h3 class="legal-heading">Not a Substitute for Professional Care</h3>
+        <p class="legal-body">If you are experiencing a mental health crisis, please contact a qualified professional or call/text <strong>988</strong> (Suicide &amp; Crisis Lifeline). This app is not a replacement for therapy, counseling, or any other professional care.</p>
+      </div>
+
+      <div class="legal-section">
+        <h3 class="legal-heading">Use at Your Own Discretion</h3>
+        <p class="legal-body">The tools and exercises in this app are provided as general wellness resources. Results vary by individual. You are responsible for determining whether any tool is appropriate for your situation.</p>
+      </div>
+
+      <div class="legal-section">
+        <h3 class="legal-heading">No Warranty</h3>
+        <p class="legal-body">This app is provided "as is" without warranty of any kind. We make no guarantees about outcomes, availability, or fitness for any particular purpose.</p>
+      </div>
+
+      <button class="btn btn--primary" id="btn-terms-ok" style="margin-top:20px">Got it</button>
+    </div>
+  </div>
+
+  <!-- ===== PRIVACY POLICY MODAL ===== -->
+  <div id="privacy-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="privacy-modal-title">
+    <div class="modal-backdrop" id="privacy-modal-backdrop"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title" id="privacy-modal-title">Privacy Policy</h2>
+        <button class="modal-close" id="btn-close-privacy-modal" aria-label="Close">✕</button>
+      </div>
+      <p class="modal-subtitle">Your privacy is a core principle of this app — not an afterthought.</p>
+
+      <div class="modal-privacy-notice">
+        <p><strong>We collect absolutely nothing.</strong> No account, no login, no tracking.</p>
+      </div>
+
+      <div class="legal-section">
+        <h3 class="legal-heading">No Data Collection</h3>
+        <p class="legal-body">Calm Down does not collect, store, or transmit any personal information. Your stress levels, written responses, and session activity never leave your device.</p>
+      </div>
+
+      <div class="legal-section">
+        <h3 class="legal-heading">Session Data</h3>
+        <p class="legal-body">All session data lives only in your browser tab. When you close or refresh the tab, everything is gone. Nothing is written to cookies, local storage, or any server.</p>
+      </div>
+
+      <div class="legal-section">
+        <h3 class="legal-heading">Downloads</h3>
+        <p class="legal-body">If you choose to download your responses, that file is saved only to your device using your browser's standard download function. We never see it.</p>
+      </div>
+
+      <div class="legal-section">
+        <h3 class="legal-heading">No Analytics or Third Parties</h3>
+        <p class="legal-body">This app contains no analytics scripts, ad trackers, or third-party services of any kind. There is nothing here watching you.</p>
+      </div>
+
+      <button class="btn btn--primary" id="btn-privacy-ok" style="margin-top:20px">Got it</button>
+    </div>
+  </div>
+
+  <!-- ===== ATTRIBUTION MODAL ===== -->
+  <div id="attribution-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="attribution-modal-title">
+    <div class="modal-backdrop" id="attribution-modal-backdrop"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title" id="attribution-modal-title">Attribution</h2>
+        <button class="modal-close" id="btn-close-attribution-modal" aria-label="Close">✕</button>
+      </div>
+
+      <div class="legal-section">
+        <h3 class="legal-heading">Marriage Helper Calm Toolkit</h3>
+        <p class="legal-body">The calm concepts, tools, and frameworks used in this app were adapted from the <strong>Marriage Helper Calm Toolkit</strong>. We are grateful for their thoughtful work in emotional wellness, stress regulation, and relationship health.</p>
+        <p class="legal-body" style="margin-top:12px">Marriage Helper is a resource dedicated to helping individuals and couples navigate difficult seasons with evidence-based tools and compassionate guidance.</p>
+        <p class="legal-body" style="margin-top:12px">Learn more at <strong>marriagehelper.com</strong>.</p>
+      </div>
+
+      <div class="legal-section" style="margin-top:4px">
+        <h3 class="legal-heading">This App</h3>
+        <p class="legal-body">Calm Down is an independent personal project built to make these tools more accessible. It is not affiliated with, endorsed by, or a product of Marriage Helper.</p>
+      </div>
+
+      <button class="btn btn--primary" id="btn-attribution-ok" style="margin-top:20px">Got it</button>
     </div>
   </div>
 

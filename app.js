@@ -231,7 +231,8 @@ const state = {
   currentTool: null,
   recommendedToolIds: [],
   activeTimers: [],
-  quickSession: false
+  quickSession: false,
+  sessionResponses: []
 };
 
 // ============================================================
@@ -262,6 +263,207 @@ function stressBand(level) {
   if (level >= 7) return 'high';
   if (level >= 4) return 'moderate';
   return 'low';
+}
+
+// ============================================================
+// DOWNLOAD UTILITY
+// ============================================================
+
+function downloadText(filename, content) {
+  // Capture this tool's content for the session summary (skip if already captured)
+  const toolId = state.currentTool;
+  if (toolId && !state.sessionResponses.some(r => r.toolId === toolId)) {
+    state.sessionResponses.push({ toolId, filename, content });
+  }
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// Capture any visible textarea content when user leaves a tool (covers journal + in-progress tools)
+function captureCurrentToolTextareas() {
+  if (!state.currentTool) return;
+  if (state.sessionResponses.some(r => r.toolId === state.currentTool)) return;
+  const container = $('tool-container');
+  if (!container) return;
+  const filled = [...container.querySelectorAll('textarea')].filter(ta => ta.value.trim());
+  if (filled.length === 0) return;
+  const toolName = TOOLS.find(t => t.id === state.currentTool)?.name || 'Tool';
+  const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  let text = `Calm Down — ${toolName}\n${date}\n\n${'='.repeat(44)}\n\n`;
+  filled.forEach(ta => {
+    const prev = ta.previousElementSibling;
+    const question = prev?.textContent?.trim() || 'Your response';
+    text += `${question}\n\n${ta.value.trim()}\n\n${'-'.repeat(44)}\n\n`;
+  });
+  text += 'Privacy note: This file was created entirely on your device.\nNo data was saved, recorded, or transmitted by Calm Down.';
+  state.sessionResponses.push({
+    toolId: state.currentTool,
+    filename: `calm-down-${state.currentTool}.txt`,
+    content: text
+  });
+}
+
+function buildSessionSummaryText() {
+  const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  let text = `Calm Down — Session Summary\n${date} at ${time}\n\n${'='.repeat(44)}\n\n`;
+
+  const start = state.sessionStartLevel;
+  const end = state.currentStressLevel || state.stressLevel;
+  if (start) {
+    text += `STRESS JOURNEY\n`;
+    text += `Started: ${start}/10\n`;
+    if (end) {
+      text += `Ended:   ${end}/10\n`;
+      const diff = start - end;
+      if (diff > 0)      text += `Shift:   ↓ ${diff} point${diff !== 1 ? 's' : ''}\n`;
+      else if (diff < 0) text += `Shift:   ↑ ${Math.abs(diff)} point${Math.abs(diff) !== 1 ? 's' : ''}\n`;
+    }
+    text += `\n${'-'.repeat(44)}\n\n`;
+  }
+
+  if (state.toolsUsed.length > 0) {
+    const names = state.toolsUsed.map(id => TOOLS.find(t => t.id === id)?.name).filter(Boolean);
+    text += `TOOLS TRIED\n`;
+    names.forEach(n => { text += `• ${n}\n`; });
+    text += `\n${'-'.repeat(44)}\n\n`;
+  }
+
+  if (state.sessionResponses.length > 0) {
+    text += `YOUR WRITTEN RESPONSES\n\n`;
+    state.sessionResponses.forEach(r => {
+      text += r.content;
+      text += `\n\n${'='.repeat(44)}\n\n`;
+    });
+  } else {
+    text += 'Privacy note: This file was created entirely on your device.\nNo data was saved, recorded, or transmitted by Calm Down.';
+  }
+  return text;
+}
+
+function renderSessionSummaryCard() {
+  const card = $('session-summary-card');
+  if (!card) return;
+  const start = state.sessionStartLevel;
+  const end = state.currentStressLevel || state.stressLevel;
+  const toolNames = state.toolsUsed.map(id => TOOLS.find(t => t.id === id)?.name).filter(Boolean);
+  let html = '';
+  if (start) {
+    const endLabel = end ? `${end}/10` : '–';
+    const diff = end ? start - end : null;
+    const shift = diff > 0 ? ` (↓ ${diff})` : diff < 0 ? ` (↑ ${Math.abs(diff)})` : '';
+    html += `<div class="summary-row">
+      <span class="summary-label">Stress</span>
+      <span class="summary-value">${start}/10 → ${endLabel}${shift}</span>
+    </div>`;
+  }
+  if (toolNames.length > 0) {
+    html += `<div class="summary-row">
+      <span class="summary-label">Tools tried</span>
+      <span class="summary-value">${toolNames.join(', ')}</span>
+    </div>`;
+  }
+  if (state.sessionResponses.length > 0) {
+    const label = state.sessionResponses.length === 1 ? '1 response captured' : `${state.sessionResponses.length} responses captured`;
+    html += `<div class="summary-row">
+      <span class="summary-label">Written</span>
+      <span class="summary-value">${label}</span>
+    </div>`;
+  }
+  card.innerHTML = html || '<p style="color:var(--color-text-muted);font-size:14px;text-align:center;padding:8px 0">Great job showing up today.</p>';
+}
+
+function showSummaryPage() {
+  $('overlay-done-page').classList.add('hidden');
+  $('overlay-checkin-page').classList.add('hidden');
+  $('overlay-summary-page').classList.remove('hidden');
+  renderSessionSummaryCard();
+}
+
+function buildResponseText(toolName, entries) {
+  const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  let text = `Calm Down — ${toolName}\n${date}\n\n${'='.repeat(44)}\n\n`;
+  entries.forEach(({ label, question, response }) => {
+    if (label) text += `[${label}]\n`;
+    text += `${question}\n\n`;
+    text += (response && response.trim()) ? response.trim() : '(no response written)';
+    text += `\n\n${'-'.repeat(44)}\n\n`;
+  });
+  text += 'Privacy note: This file was created entirely on your device.\n';
+  text += 'No data was saved, recorded, or transmitted by Calm Down.';
+  return text;
+}
+
+function renderDownloadBlock(btnId, onDownload) {
+  return `
+    <button class="btn--download-responses" id="${btnId}">Download my responses</button>
+    <p class="download-privacy-note">Saves only to your device — nothing is ever transmitted.</p>
+  `;
+}
+
+// ============================================================
+// INSTALL MODAL
+// ============================================================
+
+function showInstallModal() {
+  const modal = $('install-modal');
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function hideInstallModal() {
+  const modal = $('install-modal');
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+  localStorage.setItem('calm-install-seen', '1');
+}
+
+function initInstallModal() {
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
+
+  if (isStandalone) {
+    const btn = $('btn-open-install-modal');
+    if (btn) btn.style.display = 'none';
+    return;
+  }
+
+  if (!localStorage.getItem('calm-install-seen')) {
+    showInstallModal();
+  }
+
+  $('btn-open-install-modal').addEventListener('click', showInstallModal);
+  $('btn-close-install-modal').addEventListener('click', hideInstallModal);
+  $('btn-install-modal-ok').addEventListener('click', hideInstallModal);
+  $('install-modal-backdrop').addEventListener('click', hideInstallModal);
+}
+
+// ============================================================
+// LEGAL MODALS (Terms, Privacy, Attribution)
+// ============================================================
+
+function initLegalModals() {
+  [
+    { openId: 'btn-open-terms',       modalId: 'terms-modal',       closeId: 'btn-close-terms-modal',       okId: 'btn-terms-ok',       backdropId: 'terms-modal-backdrop' },
+    { openId: 'btn-open-privacy',     modalId: 'privacy-modal',     closeId: 'btn-close-privacy-modal',     okId: 'btn-privacy-ok',     backdropId: 'privacy-modal-backdrop' },
+    { openId: 'btn-open-attribution', modalId: 'attribution-modal', closeId: 'btn-close-attribution-modal', okId: 'btn-attribution-ok', backdropId: 'attribution-modal-backdrop' }
+  ].forEach(({ openId, modalId, closeId, okId, backdropId }) => {
+    const modal = $(modalId);
+    const show = () => { modal.classList.remove('hidden'); modal.setAttribute('aria-hidden', 'false'); };
+    const hide = () => { modal.classList.add('hidden'); modal.setAttribute('aria-hidden', 'true'); };
+    $(openId).addEventListener('click', show);
+    $(closeId).addEventListener('click', hide);
+    $(okId).addEventListener('click', hide);
+    $(backdropId).addEventListener('click', hide);
+  });
 }
 
 // ============================================================
@@ -913,9 +1115,11 @@ function renderGrowthMindset(container) {
   ];
 
   let step = 0;
+  const responses = [];
 
   function render() {
     const isLast = step === prompts.length;
+    const hasContent = responses.some(r => r.trim());
     container.innerHTML = `
       <div class="tool-header">
         <h2 class="tool-title">Growth Mindset Reframe</h2>
@@ -927,18 +1131,33 @@ function renderGrowthMindset(container) {
           <p class="step-prompt">${prompts[step].q}</p>
           ${prompts[step].hint ? `<p class="step-subtext">${prompts[step].hint}</p>` : ''}
         </div>
-        <textarea class="tool-input" placeholder="Your thoughts (optional — nothing is saved)" rows="4" id="gm-input-${step}"></textarea>
+        <textarea class="tool-input" placeholder="Your thoughts (optional — nothing is saved or transmitted)" rows="4"></textarea>
         <button class="btn--advance mt-md" id="gm-next">
           ${step < prompts.length - 1 ? 'Next →' : 'Finish'}
         </button>
       ` : `
         <div class="affirmation-card">
           <p class="affirmation-text">You are not stuck. You are in a moment that will pass. Growth happens in hard seasons.</p>
+          ${hasContent ? renderDownloadBlock('gm-download') : ''}
         </div>
       `}
     `;
     if (!isLast) {
-      $('gm-next').addEventListener('click', () => { step++; render(); });
+      $('gm-next').addEventListener('click', () => {
+        const ta = container.querySelector('textarea');
+        responses.push(ta ? ta.value : '');
+        step++;
+        render();
+      });
+    }
+    const dlBtn = $('gm-download');
+    if (dlBtn) {
+      dlBtn.addEventListener('click', () => {
+        downloadText('calm-down-growth-mindset.txt', buildResponseText(
+          'Growth Mindset Reframe',
+          prompts.map((p, i) => ({ label: `Question ${i + 1} of ${prompts.length}`, question: p.q, response: responses[i] || '' }))
+        ));
+      });
     }
   }
   render();
@@ -957,9 +1176,11 @@ function renderHabitLoop(container) {
   ];
 
   let step = 0;
+  const responses = [];
 
   function render() {
     const isLast = step === steps.length;
+    const hasContent = responses.some(r => r.trim());
     container.innerHTML = `
       <div class="tool-header">
         <h2 class="tool-title">Habit Loop Audit</h2>
@@ -975,18 +1196,33 @@ function renderHabitLoop(container) {
           <p class="step-prompt" style="font-size:20px">${steps[step].q}</p>
           ${steps[step].hint ? `<p class="step-subtext">${steps[step].hint}</p>` : ''}
         </div>
-        <textarea class="tool-input" placeholder="Write it out (nothing is saved)" rows="4"></textarea>
+        <textarea class="tool-input" placeholder="Write it out (nothing is saved or transmitted)" rows="4"></textarea>
         <button class="btn--advance mt-md" id="hl-next">
           ${step < steps.length - 1 ? 'Next →' : 'Finish'}
         </button>
       ` : `
         <div class="affirmation-card">
           <p class="affirmation-text">You don't have to fix the whole loop today. Just noticing it is the first step.</p>
+          ${hasContent ? renderDownloadBlock('hl-download') : ''}
         </div>
       `}
     `;
     if (!isLast) {
-      $('hl-next').addEventListener('click', () => { step++; render(); });
+      $('hl-next').addEventListener('click', () => {
+        const ta = container.querySelector('textarea');
+        responses.push(ta ? ta.value : '');
+        step++;
+        render();
+      });
+    }
+    const dlBtn = $('hl-download');
+    if (dlBtn) {
+      dlBtn.addEventListener('click', () => {
+        downloadText('calm-down-habit-loop.txt', buildResponseText(
+          'Habit Loop Audit',
+          steps.map((s, i) => ({ label: s.label, question: s.q, response: responses[i] || '' }))
+        ));
+      });
     }
   }
   render();
@@ -1004,9 +1240,11 @@ function renderGratitude(container) {
   ];
 
   let step = 0;
+  const responses = [];
 
   function render() {
     const isLast = step === questions.length;
+    const hasContent = responses.some(r => r.trim());
     container.innerHTML = `
       <div class="tool-header">
         <h2 class="tool-title">Focus on the Good</h2>
@@ -1017,18 +1255,33 @@ function renderGratitude(container) {
           <p class="step-number">Question ${step + 1} of ${questions.length}</p>
           <p class="step-prompt">${questions[step]}</p>
         </div>
-        <textarea class="tool-input" placeholder="Take your time (nothing is saved)" rows="4"></textarea>
+        <textarea class="tool-input" placeholder="Take your time (nothing is saved or transmitted)" rows="4"></textarea>
         <button class="btn--advance mt-md" id="gr-next">
           ${step < questions.length - 1 ? 'Next →' : 'Finish'}
         </button>
       ` : `
         <div class="affirmation-card">
           <p class="affirmation-text">Your brain needed that. Come back here any time.</p>
+          ${hasContent ? renderDownloadBlock('gr-download') : ''}
         </div>
       `}
     `;
     if (!isLast) {
-      $('gr-next').addEventListener('click', () => { step++; render(); });
+      $('gr-next').addEventListener('click', () => {
+        const ta = container.querySelector('textarea');
+        responses.push(ta ? ta.value : '');
+        step++;
+        render();
+      });
+    }
+    const dlBtn = $('gr-download');
+    if (dlBtn) {
+      dlBtn.addEventListener('click', () => {
+        downloadText('calm-down-gratitude.txt', buildResponseText(
+          'Focus on the Good',
+          questions.map((q, i) => ({ label: `Question ${i + 1} of ${questions.length}`, question: q, response: responses[i] || '' }))
+        ));
+      });
     }
   }
   render();
@@ -1042,6 +1295,7 @@ function renderNameTheLie(container) {
   let step = 0;
   let pauseCount = 30;
   let pauseRunning = false;
+  const responses = { step0: '', step2: '', step3: '' };
 
   function render() {
     if (step === 0) {
@@ -1054,10 +1308,14 @@ function renderNameTheLie(container) {
           <p class="step-number">Step 1 of 4</p>
           <p class="step-prompt" style="font-size:20px">What is the harshest thing you are currently saying to yourself?</p>
         </div>
-        <textarea class="tool-input" placeholder="Write it down. You don't have to share it with anyone." rows="4" id="ntl-input-1"></textarea>
+        <textarea class="tool-input" placeholder="Write it down. You don't have to share it with anyone. Nothing is saved or transmitted." rows="4" id="ntl-input-1"></textarea>
         <button class="btn--advance mt-md" id="ntl-next">Next →</button>
       `;
-      $('ntl-next').addEventListener('click', () => { step++; render(); });
+      $('ntl-next').addEventListener('click', () => {
+        responses.step0 = $('ntl-input-1')?.value || '';
+        step++;
+        render();
+      });
 
     } else if (step === 1) {
       container.innerHTML = `
@@ -1128,10 +1386,14 @@ function renderNameTheLie(container) {
           <p class="step-number">Step 3 of 4</p>
           <p class="step-prompt" style="font-size:20px">What would you say to your best friend if they said this to you?</p>
         </div>
-        <textarea class="tool-input" placeholder="Write what you'd say to someone you love." rows="4"></textarea>
+        <textarea class="tool-input" placeholder="Write what you'd say to someone you love. Nothing is saved or transmitted." rows="4"></textarea>
         <button class="btn--advance mt-md" id="ntl-next-3">Next →</button>
       `;
-      $('ntl-next-3').addEventListener('click', () => { step++; render(); });
+      $('ntl-next-3').addEventListener('click', () => {
+        responses.step2 = container.querySelector('textarea')?.value || '';
+        step++;
+        render();
+      });
 
     } else if (step === 3) {
       container.innerHTML = `
@@ -1146,18 +1408,33 @@ function renderNameTheLie(container) {
         <textarea class="tool-input" placeholder="The actual truth..." rows="5" id="ntl-truth"></textarea>
         <button class="btn--advance mt-md" id="ntl-finish">Finish</button>
       `;
-      $('ntl-finish').addEventListener('click', () => { step++; render(); });
+      $('ntl-finish').addEventListener('click', () => {
+        responses.step3 = $('ntl-truth')?.value || '';
+        step++;
+        render();
+      });
 
     } else {
+      const hasContent = Object.values(responses).some(r => r.trim());
       container.innerHTML = `
         <div class="tool-header">
           <h2 class="tool-title">Name the Lie, Say the Truth</h2>
         </div>
         <div class="affirmation-card">
           <p class="affirmation-text">That truth is the thing worth listening to.</p>
-          <p style="font-size:13px;color:var(--color-text-muted);margin-top:12px">Screenshot this if you want to keep it.</p>
+          ${hasContent ? renderDownloadBlock('ntl-download') : ''}
         </div>
       `;
+      const dlBtn = $('ntl-download');
+      if (dlBtn) {
+        dlBtn.addEventListener('click', () => {
+          downloadText('calm-down-name-the-lie.txt', buildResponseText('Name the Lie, Say the Truth', [
+            { label: 'Step 1 of 4', question: 'What is the harshest thing you are currently saying to yourself?', response: responses.step0 },
+            { label: 'Step 3 of 4', question: 'What would you say to your best friend if they said this to you?', response: responses.step2 },
+            { label: 'Step 4 of 4', question: 'Now write the truth.', response: responses.step3 }
+          ]));
+        });
+      }
     }
   }
   render();
@@ -1381,9 +1658,11 @@ function renderValues(container) {
   ];
 
   let step = 0;
+  const responses = [];
 
   function render() {
     const isLast = step === prompts.length;
+    const hasContent = responses.some(r => r.trim());
     container.innerHTML = `
       <div class="tool-header">
         <h2 class="tool-title">Values Alignment Check</h2>
@@ -1394,18 +1673,33 @@ function renderValues(container) {
           <p class="step-prompt" style="font-size:20px">${prompts[step].q}</p>
           ${prompts[step].hint ? `<p class="step-subtext">${prompts[step].hint}</p>` : ''}
         </div>
-        <textarea class="tool-input" placeholder="Take your time (nothing is saved)" rows="4"></textarea>
+        <textarea class="tool-input" placeholder="Take your time (nothing is saved or transmitted)" rows="4"></textarea>
         <button class="btn--advance mt-md" id="val-next">
           ${step < prompts.length - 1 ? 'Next →' : 'Finish'}
         </button>
       ` : `
         <div class="affirmation-card">
           <p class="affirmation-text">Clarity about what matters is itself a form of calm. You know who you want to be.</p>
+          ${hasContent ? renderDownloadBlock('val-download') : ''}
         </div>
       `}
     `;
     if (!isLast) {
-      $('val-next').addEventListener('click', () => { step++; render(); });
+      $('val-next').addEventListener('click', () => {
+        const ta = container.querySelector('textarea');
+        responses.push(ta ? ta.value : '');
+        step++;
+        render();
+      });
+    }
+    const dlBtn = $('val-download');
+    if (dlBtn) {
+      dlBtn.addEventListener('click', () => {
+        downloadText('calm-down-values.txt', buildResponseText(
+          'Values Alignment Check',
+          prompts.map((p, i) => ({ label: p.label, question: p.q, response: responses[i] || '' }))
+        ));
+      });
     }
   }
   render();
@@ -1544,7 +1838,11 @@ function renderJournaling(container) {
         <span class="journal-timer-display" id="journal-timer-display"></span>
       </div>
 
-      <button class="btn--clear" id="journal-clear">Clear & Discard</button>
+      <div class="journal-action-row">
+        <button class="btn--clear" id="journal-clear">Clear & Discard</button>
+        <button class="btn--download-journal" id="journal-download">Download entry</button>
+      </div>
+      <p class="download-privacy-note" style="margin-top:4px">Your entry is never saved or transmitted — download creates a local file only.</p>
     </div>
   `;
 
@@ -1597,6 +1895,15 @@ function renderJournaling(container) {
       $('journal-text').value = '';
     }
   });
+
+  // Download
+  $('journal-download').addEventListener('click', () => {
+    const text = $('journal-text').value.trim();
+    if (!text) return;
+    const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const content = `Calm Down — Journal Entry\n${date}\n\n${'='.repeat(44)}\n\n${text}\n\n${'='.repeat(44)}\n\nPrivacy note: This file was created on your device.\nNo data was saved, recorded, or transmitted by Calm Down.`;
+    downloadText(`calm-down-journal.txt`, content);
+  });
 }
 
 // ============================================================
@@ -1613,9 +1920,11 @@ function renderGrounding(container) {
   ];
 
   let step = 0;
+  const responses = [];
 
   function render() {
     const isLast = step === senses.length;
+    const hasContent = responses.some(r => r.trim());
     container.innerHTML = `
       <div class="tool-header">
         <h2 class="tool-title">5-Senses Grounding</h2>
@@ -1633,11 +1942,26 @@ function renderGrounding(container) {
       ` : `
         <div class="affirmation-card">
           <p class="affirmation-text">You just proved to your brain that you are safe right now — in this moment, in this place.</p>
+          ${hasContent ? renderDownloadBlock('gs-download') : ''}
         </div>
       `}
     `;
     if (!isLast) {
-      $('gs-next').addEventListener('click', () => { step++; render(); });
+      $('gs-next').addEventListener('click', () => {
+        const ta = container.querySelector('textarea');
+        responses.push(ta ? ta.value : '');
+        step++;
+        render();
+      });
+    }
+    const dlBtn = $('gs-download');
+    if (dlBtn) {
+      dlBtn.addEventListener('click', () => {
+        downloadText('calm-down-grounding.txt', buildResponseText(
+          '5-Senses Grounding',
+          senses.map((s, i) => ({ label: s.label, question: s.prompt, response: responses[i] || '' }))
+        ));
+      });
     }
   }
   render();
@@ -1691,6 +2015,7 @@ function renderNutrition(container) {
 
 function renderMindfulness(container) {
   let step = 0;
+  const responses = { emotion: '', body: '' };
 
   function render() {
     if (step === 0) {
@@ -1721,7 +2046,11 @@ function renderMindfulness(container) {
         <textarea class="tool-input" placeholder="e.g. Dread. Sadness. Rage. Numbness. Anxiety. Relief. Nothing." rows="3"></textarea>
         <button class="btn--advance mt-md" id="mf-next-2">Next →</button>
       `;
-      $('mf-next-2').addEventListener('click', () => { step++; render(); });
+      $('mf-next-2').addEventListener('click', () => {
+        responses.emotion = container.querySelector('textarea')?.value || '';
+        step++;
+        render();
+      });
 
     } else if (step === 2) {
       container.innerHTML = `
@@ -1736,7 +2065,11 @@ function renderMindfulness(container) {
         <textarea class="tool-input" placeholder="Describe what you physically feel, not what happened or why." rows="3"></textarea>
         <button class="btn--advance mt-md" id="mf-next-3">Next →</button>
       `;
-      $('mf-next-3').addEventListener('click', () => { step++; render(); });
+      $('mf-next-3').addEventListener('click', () => {
+        responses.body = container.querySelector('textarea')?.value || '';
+        step++;
+        render();
+      });
 
     } else if (step === 3) {
       let holdCount = 60;
@@ -1768,14 +2101,25 @@ function renderMindfulness(container) {
       addTimer(id);
 
     } else {
+      const hasContent = responses.emotion.trim() || responses.body.trim();
       container.innerHTML = `
         <div class="tool-header">
           <h2 class="tool-title">Mindfulness Check-In</h2>
         </div>
         <div class="affirmation-card">
           <p class="affirmation-text">You leaned in instead of running. That takes more courage than most people realize.</p>
+          ${hasContent ? renderDownloadBlock('mf-download') : ''}
         </div>
       `;
+      const dlBtn = $('mf-download');
+      if (dlBtn) {
+        dlBtn.addEventListener('click', () => {
+          downloadText('calm-down-mindfulness.txt', buildResponseText('Mindfulness Check-In', [
+            { label: 'Step 2 of 4 — Notice', question: 'What emotion is present right now?', response: responses.emotion },
+            { label: 'Step 3 of 4 — Get Curious', question: 'Where do you feel this in your body?', response: responses.body }
+          ]));
+        });
+      }
     }
   }
   render();
@@ -2040,6 +2384,7 @@ function wireEvents() {
   });
 
   $('btn-done-tool').addEventListener('click', () => {
+    captureCurrentToolTextareas();
     clearTimers();
     if (state.quickSession) {
       state.quickSession = false;
@@ -2063,9 +2408,7 @@ function wireEvents() {
   });
 
   $('btn-done-session').addEventListener('click', () => {
-    hideCompletionOverlay();
-    resetSession();
-    showScreen('screen-checkin');
+    showSummaryPage();
   });
 
   // Completion overlay — page 2 (check-in)
@@ -2080,8 +2423,13 @@ function wireEvents() {
   });
 
   $('btn-done-session-2').addEventListener('click', () => {
+    showSummaryPage();
+  });
+
+  // Session summary page (page 3)
+  $('btn-summary-done').addEventListener('click', () => {
+    $('overlay-summary-page').classList.add('hidden');
     $('overlay-done-page').classList.remove('hidden');
-    $('overlay-checkin-page').classList.add('hidden');
     hideCompletionOverlay();
     resetSession();
     showScreen('screen-checkin');
@@ -2107,6 +2455,7 @@ function resetSession() {
   state.currentTool = null;
   state.recommendedToolIds = [];
   state.quickSession = false;
+  state.sessionResponses = [];
 
   // Reset stress scale
   document.querySelectorAll('.stress-btn').forEach(btn => {
@@ -2129,4 +2478,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initStressScale();
   wireEvents();
   initPWA();
+  initInstallModal();
+  initLegalModals();
 });

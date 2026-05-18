@@ -1381,6 +1381,12 @@ input, textarea {
   color: var(--color-text-muted);
 }
 
+.journal-action-row {
+  display: flex;
+  gap: 8px;
+  margin-top: var(--spacing-sm);
+}
+
 .btn--clear {
   background: transparent;
   border: 1px solid var(--color-border);
@@ -1388,9 +1394,27 @@ input, textarea {
   border-radius: var(--radius-md);
   padding: 10px;
   font-size: 13px;
-  width: 100%;
-  margin-top: var(--spacing-sm);
+  flex: 1;
   min-height: 44px;
+}
+
+.btn--download-journal {
+  background: transparent;
+  border: 1px solid var(--color-accent-soft);
+  color: var(--color-accent);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  flex: 1;
+  min-height: 44px;
+}
+
+.btn--download-journal:hover {
+  background: var(--color-bg-elevated);
+  border-color: var(--color-accent);
 }
 
 /* ============================================================
@@ -1790,6 +1814,327 @@ input, textarea {
   .breath-circle {
     transition: none !important;
   }
+}
+
+/* ============================================================
+   HEADER RIGHT GROUP
+   ============================================================ */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-install-guide {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  padding: 5px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+  min-height: 28px;
+  letter-spacing: 0.02em;
+}
+
+.btn-install-guide:hover {
+  color: var(--color-text-secondary);
+  border-color: var(--color-accent-soft);
+}
+
+/* ============================================================
+   PRIVACY NOTICE (check-in screen)
+   ============================================================ */
+.privacy-notice {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-align: center;
+  margin-top: var(--spacing-md);
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+}
+
+.legal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.legal-link {
+  background: none;
+  border: none;
+  padding: 4px 2px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 0.01em;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s;
+}
+
+.legal-link:hover {
+  color: var(--color-text-secondary);
+}
+
+.legal-sep {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.legal-section {
+  margin-bottom: var(--spacing-md);
+}
+
+.legal-heading {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 6px;
+  letter-spacing: 0.01em;
+}
+
+.legal-body {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+/* ============================================================
+   INSTALL MODAL
+   ============================================================ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--color-overlay);
+}
+
+.modal-card {
+  position: relative;
+  z-index: 1;
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg) var(--spacing-md);
+  width: 100%;
+  max-width: 480px;
+  max-height: 88vh;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-sm);
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.modal-close {
+  color: var(--color-text-muted);
+  font-size: 18px;
+  padding: 8px;
+  min-width: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: color 0.2s;
+}
+
+.modal-close:hover {
+  color: var(--color-text-secondary);
+}
+
+.modal-subtitle {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-md);
+}
+
+.modal-privacy-notice {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-accent-soft);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.modal-privacy-notice p {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.install-platform {
+  margin-bottom: var(--spacing-md);
+}
+
+.install-platform-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: var(--spacing-sm);
+}
+
+.install-steps {
+  list-style: none;
+  counter-reset: install-step;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0;
+}
+
+.install-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  font-size: 14px;
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  counter-increment: install-step;
+}
+
+.install-steps li::before {
+  content: counter(install-step);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border-radius: 50%;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-accent-soft);
+  color: var(--color-accent);
+  font-size: 11px;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* ============================================================
+   DOWNLOAD RESPONSES (tool completion screens)
+   ============================================================ */
+.btn--download-responses {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--color-accent-soft);
+  color: var(--color-accent);
+  border-radius: var(--radius-md);
+  padding: 12px var(--spacing-md);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  min-height: 44px;
+  margin-top: var(--spacing-md);
+  letter-spacing: 0.01em;
+}
+
+.btn--download-responses:hover {
+  background: var(--color-bg-elevated);
+  border-color: var(--color-accent);
+}
+
+.download-privacy-note {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-align: center;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+/* ============================================================
+   SESSION SUMMARY (overlay page 3)
+   ============================================================ */
+.session-summary-card {
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: 4px var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  text-align: left;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border);
+  gap: 12px;
+}
+
+.summary-row:last-child {
+  border-bottom: none;
+}
+
+.summary-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.summary-value {
+  font-size: 14px;
+  color: var(--color-text-primary);
+  text-align: right;
+  line-height: 1.4;
+}
+
+.btn--share {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--color-accent-soft);
+  color: var(--color-accent);
+  border-radius: var(--radius-md);
+  padding: 14px var(--spacing-md);
+  font-size: 15px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  min-height: 48px;
+  margin-bottom: var(--spacing-sm);
+  letter-spacing: 0.01em;
+}
+
+.btn--share:hover {
+  background: var(--color-bg-elevated);
+  border-color: var(--color-accent);
 }
 
 /* ============================================================

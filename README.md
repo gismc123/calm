@@ -6,6 +6,22 @@ Built around the Marriage Helper Calm Down Toolkit, the app walks users through 
 
 ---
 
+## Screenshots
+
+| Stress Check-In | PIES Categories | Your Calm-Down Plan |
+|:-:|:-:|:-:|
+| ![Stress check-in screen showing 1–10 scale with 7 selected](assets/Demo%20Images/Screen%201.png) | ![PIES category selector with Physical and Emotional checked](assets/Demo%20Images/Screen%202.png) | ![Personalized calm-down plan with Box Breathing highlighted](assets/Demo%20Images/Screen%203.png) |
+
+| Box Breathing (Active) | Tool Complete | Quick Check-In |
+|:-:|:-:|:-:|
+| ![Box breathing animated timer showing Round 1 of 4, Hold phase](assets/Demo%20Images/Screen%204.png) | ![Completion screen — "You did something hard. That matters."](assets/Demo%20Images/screen%205.png) | ![Mid-session check-in modal — stress dropped from 7 to 4](assets/Demo%20Images/screen%206.png) |
+
+| Updated Plan | Session Summary | Install as PWA |
+|:-:|:-:|:-:|
+| ![Updated plan showing stress progress and tools tried](assets/Demo%20Images/Screen%207.png) | ![5-Senses Grounding tool with session summary overlay](assets/Demo%20Images/Screen%208.png) | ![Add to Home Screen modal with iOS and Android install steps](assets/Demo%20Images/Install-on-HomeScreen.png) |
+
+---
+
 ## Features
 
 - **Stress check-in** — pick a number 1–10; the app adapts tool recommendations to your level

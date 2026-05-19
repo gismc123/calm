@@ -1854,6 +1854,20 @@ input, textarea {
   letter-spacing: 0.01em;
 }
 
+.toolkit-credit {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-align: center;
+  margin-top: 8px;
+  letter-spacing: 0.01em;
+}
+
+.toolkit-credit-link {
+  display: inline;
+  padding: 0;
+  font-size: inherit;
+}
+
 .legal-footer {
   display: flex;
   align-items: center;

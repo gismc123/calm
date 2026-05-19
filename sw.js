@@ -1,4 +1,5 @@
-const CACHE_NAME = 'calm-down-v1';
+const CACHE_NAME = 'calm-down-v1.0-__BUILD_DATE__';
+
 const ASSETS = [
   './',
   './index.html',
@@ -29,8 +30,32 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+
+  // Cache-first for icons — they rarely change and saves bandwidth
+  if (/\.(png|jpg|jpeg|gif|ico|svg|woff|woff2)$/.test(url.pathname)) {
+    event.respondWith(
+      caches.match(event.request).then(cached => {
+        if (cached) return cached;
+        return fetch(event.request).then(response => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          return response;
+        });
+      })
+    );
+    return;
+  }
+
+  // Network-first for HTML, JS, CSS, JSON, and lesson files
+  // Users always get fresh content when online; cache is the offline fallback
   event.respondWith(
-    caches.match(event.request)
-      .then(cached => cached || fetch(event.request))
+    fetch(event.request)
+      .then(response => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });

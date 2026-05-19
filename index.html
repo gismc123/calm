@@ -11,6 +11,7 @@
   <meta name="apple-mobile-web-app-title" content="Calm Down">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#1C2340">
+  <meta name="app-version" content="__APP_VERSION__">
 
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="assets/icon-apple.png">
@@ -67,6 +68,8 @@
         <button class="legal-link" id="btn-open-privacy">Privacy Policy</button>
         <span class="legal-sep">·</span>
         <button class="legal-link" id="btn-open-attribution">Attribution</button>
+        <span class="legal-sep">·</span>
+        <button class="legal-link" id="btn-open-version">Build Version</button>
       </div>
     </div>
   </div>
@@ -323,6 +326,22 @@
       </div>
 
       <button class="btn btn--primary" id="btn-attribution-ok" style="margin-top:20px">Got it</button>
+    </div>
+  </div>
+
+  <!-- ===== BUILD VERSION MODAL ===== -->
+  <div id="version-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="version-modal-title">
+    <div class="modal-backdrop" id="version-modal-backdrop"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title" id="version-modal-title">Build Version</h2>
+        <button class="modal-close" id="btn-close-version-modal" aria-label="Close">✕</button>
+      </div>
+      <div class="legal-section">
+        <h3 class="legal-heading">Deployed Version</h3>
+        <p class="legal-body" id="build-version-string" style="font-family: monospace; word-break: break-all;">Loading…</p>
+      </div>
+      <button class="btn btn--primary" id="btn-version-ok" style="margin-top:20px">Got it</button>
     </div>
   </div>
 

@@ -454,7 +454,8 @@ function initLegalModals() {
   [
     { openId: 'btn-open-terms',       modalId: 'terms-modal',       closeId: 'btn-close-terms-modal',       okId: 'btn-terms-ok',       backdropId: 'terms-modal-backdrop' },
     { openId: 'btn-open-privacy',     modalId: 'privacy-modal',     closeId: 'btn-close-privacy-modal',     okId: 'btn-privacy-ok',     backdropId: 'privacy-modal-backdrop' },
-    { openId: 'btn-open-attribution', modalId: 'attribution-modal', closeId: 'btn-close-attribution-modal', okId: 'btn-attribution-ok', backdropId: 'attribution-modal-backdrop' }
+    { openId: 'btn-open-attribution', modalId: 'attribution-modal', closeId: 'btn-close-attribution-modal', okId: 'btn-attribution-ok', backdropId: 'attribution-modal-backdrop' },
+    { openId: 'btn-open-version',     modalId: 'version-modal',     closeId: 'btn-close-version-modal',     okId: 'btn-version-ok',     backdropId: 'version-modal-backdrop' }
   ].forEach(({ openId, modalId, closeId, okId, backdropId }) => {
     const modal = $(modalId);
     const show = () => { modal.classList.remove('hidden'); modal.setAttribute('aria-hidden', 'false'); };
@@ -463,6 +464,14 @@ function initLegalModals() {
     $(closeId).addEventListener('click', hide);
     $(okId).addEventListener('click', hide);
     $(backdropId).addEventListener('click', hide);
+  });
+
+  $('btn-open-version').addEventListener('click', () => {
+    const meta = document.querySelector('meta[name="app-version"]');
+    const version = (meta && meta.content && meta.content !== '__APP_VERSION__')
+      ? meta.content
+      : 'calm-down-v1.0-dev';
+    $('build-version-string').textContent = version;
   });
 }
 

@@ -915,6 +915,7 @@ function renderBoxBreathing(container) {
         nextPhase();
       } else {
         countEl.textContent = count;
+        VoiceGuide.tick();
       }
     }, 1000);
     addTimer(tickId);
@@ -946,6 +947,7 @@ function renderBoxBreathing(container) {
         nextPhase();
       } else {
         countEl.textContent = count;
+        VoiceGuide.tick();
       }
     }, 1000);
     addTimer(tickId);
@@ -1098,6 +1100,7 @@ function renderFullTrunkBreathing(container) {
         VoiceGuide.speak(phases[pi].label);
       } else {
         countEl.textContent = c;
+        VoiceGuide.tick();
       }
     }, 1000);
     addTimer(id);

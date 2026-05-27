@@ -1843,6 +1843,51 @@ input, textarea {
 }
 
 /* ============================================================
+   VOICE GUIDANCE TOGGLE BUTTON
+   ============================================================ */
+.btn-voice-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  padding: 5px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  white-space: nowrap;
+  min-height: 28px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  background: transparent;
+}
+
+.btn-voice-toggle:hover {
+  color: var(--color-text-secondary);
+  border-color: var(--color-accent-soft);
+}
+
+.btn-voice-toggle.voice-btn--active {
+  color: var(--color-accent);
+  border-color: var(--color-accent-soft);
+  background: var(--color-accent-glow);
+}
+
+/* ============================================================
+   TOOL SCREEN TOP ROW (back btn + voice toggle)
+   ============================================================ */
+.tool-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-md);
+}
+
+.tool-top-row .back-btn {
+  margin-bottom: 0;
+}
+
+/* ============================================================
    PRIVACY NOTICE (check-in screen)
    ============================================================ */
 .privacy-notice {

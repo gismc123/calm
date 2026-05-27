@@ -35,6 +35,9 @@
         <div class="app-wordmark">Calm Down</div>
         <div class="header-right">
           <button class="btn-install-guide" id="btn-open-install-modal" aria-label="How to add to home screen">+ Home Screen</button>
+          <button class="btn-voice-toggle" data-voice-toggle id="btn-voice-checkin" aria-pressed="false" aria-label="Toggle voice guidance" title="Voice guidance off">
+            <span aria-hidden="true">🔊</span> Voice
+          </button>
           <div class="theme-picker" id="theme-picker" role="group" aria-label="Choose color theme">
             <button class="theme-swatch theme-swatch--midnight" data-theme="midnight" aria-label="Midnight theme" title="Midnight"></button>
             <button class="theme-swatch theme-swatch--forest"   data-theme="forest"   aria-label="Forest theme"   title="Forest"></button>
@@ -156,7 +159,12 @@
   <!-- ===== SCREEN 4: TOOL EXPERIENCE ===== -->
   <div id="screen-tool" class="screen" role="main">
     <div class="screen-inner screen-inner--tool">
-      <button class="back-btn" id="back-tool" aria-label="Back to my plan">← Back to Plan</button>
+      <div class="tool-top-row">
+        <button class="back-btn" id="back-tool" aria-label="Back to my plan">← Back to Plan</button>
+        <button class="btn-voice-toggle" data-voice-toggle id="btn-voice-tool" aria-pressed="false" aria-label="Toggle voice guidance" title="Voice guidance off">
+          <span aria-hidden="true">🔊</span> Voice
+        </button>
+      </div>
       <main id="tool-container">
         <!-- Rendered by app.js -->
       </main>
@@ -347,6 +355,7 @@
     </div>
   </div>
 
+  <script src="voice.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

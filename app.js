@@ -504,6 +504,7 @@ const SCREENS = ['screen-checkin', 'screen-safety', 'screen-categories', 'screen
 
 function showScreen(id) {
   clearTimers();
+  VoiceGuide.cancel();
   SCREENS.forEach(sid => {
     const el = $(sid);
     if (sid === id) {
@@ -884,11 +885,13 @@ function renderBoxBreathing(container) {
     }
     count = currentPhases[phaseIndex].duration;
     updateCircle();
+    VoiceGuide.speak(currentPhases[phaseIndex].name);
   }
 
   function endSession() {
     sessionRunning = false;
     clearTimers();
+    VoiceGuide.speak('Well done.');
     circle.className = 'breath-circle phase-hold-top';
     phaseEl.textContent = '';
     countEl.textContent = '✓';
@@ -903,6 +906,7 @@ function renderBoxBreathing(container) {
     count = currentPhases[0].duration;
     roundEl.textContent = `Round 1 of ${totalRounds}`;
     updateCircle();
+    VoiceGuide.speak(currentPhases[0].name);
 
     const tickId = setInterval(() => {
       if (!sessionRunning) return;
@@ -933,6 +937,7 @@ function renderBoxBreathing(container) {
     roundEl.textContent = `Round ${roundsCompleted + 1} of ${totalRounds}`;
     completeEl.classList.add('hidden');
     updateCircle();
+    VoiceGuide.speak(currentPhases[0].name);
 
     const tickId = setInterval(() => {
       if (!sessionRunning) return;
@@ -1039,6 +1044,7 @@ function renderFullTrunkBreathing(container) {
   function showTextStep(idx) {
     stepTextEl.textContent = textSteps[idx];
     textStageEl.querySelector('.step-number').textContent = `Step ${idx + 1}`;
+    VoiceGuide.speak(textSteps[idx]);
   }
 
   function startTimedCycle() {
@@ -1060,6 +1066,7 @@ function renderFullTrunkBreathing(container) {
     circleEl.className = 'breath-circle ' + phases[0].cssClass;
     phaseLabelEl.textContent = phases[0].label;
     countEl.textContent = c;
+    VoiceGuide.speak(phases[0].label);
 
     const id = setInterval(() => {
       c--;
@@ -1075,6 +1082,7 @@ function renderFullTrunkBreathing(container) {
             cycleEl.textContent = 'Complete';
             nextBtn.classList.add('hidden');
             completeEl.classList.remove('hidden');
+            VoiceGuide.speak('Four cycles complete. Well done.');
           } else {
             cycleEl.textContent = `Cycle ${cycleCount + 1} of ${totalCycles}`;
             hintEl.textContent = `Cycle ${cycleCount + 1} of ${totalCycles}`;
@@ -1087,6 +1095,7 @@ function renderFullTrunkBreathing(container) {
         circleEl.className = 'breath-circle ' + phases[pi].cssClass;
         phaseLabelEl.textContent = phases[pi].label;
         countEl.textContent = c;
+        VoiceGuide.speak(phases[pi].label);
       } else {
         countEl.textContent = c;
       }
@@ -1153,6 +1162,7 @@ function renderGrowthMindset(container) {
       `}
     `;
     if (!isLast) {
+      VoiceGuide.speak(prompts[step].q);
       $('gm-next').addEventListener('click', () => {
         const ta = container.querySelector('textarea');
         responses.push(ta ? ta.value : '');
@@ -1218,6 +1228,7 @@ function renderHabitLoop(container) {
       `}
     `;
     if (!isLast) {
+      VoiceGuide.speak(steps[step].q);
       $('hl-next').addEventListener('click', () => {
         const ta = container.querySelector('textarea');
         responses.push(ta ? ta.value : '');
@@ -1277,6 +1288,7 @@ function renderGratitude(container) {
       `}
     `;
     if (!isLast) {
+      VoiceGuide.speak(questions[step]);
       $('gr-next').addEventListener('click', () => {
         const ta = container.querySelector('textarea');
         responses.push(ta ? ta.value : '');
@@ -1321,6 +1333,7 @@ function renderNameTheLie(container) {
         <textarea class="tool-input" placeholder="Write it down. You don't have to share it with anyone. Nothing is saved or transmitted." rows="4" id="ntl-input-1"></textarea>
         <button class="btn--advance mt-md" id="ntl-next">Next →</button>
       `;
+      VoiceGuide.speak('What is the harshest thing you are currently saying to yourself?');
       $('ntl-next').addEventListener('click', () => {
         responses.step0 = $('ntl-input-1')?.value || '';
         step++;
@@ -1399,6 +1412,7 @@ function renderNameTheLie(container) {
         <textarea class="tool-input" placeholder="Write what you'd say to someone you love. Nothing is saved or transmitted." rows="4"></textarea>
         <button class="btn--advance mt-md" id="ntl-next-3">Next →</button>
       `;
+      VoiceGuide.speak('What would you say to your best friend if they said this to you?');
       $('ntl-next-3').addEventListener('click', () => {
         responses.step2 = container.querySelector('textarea')?.value || '';
         step++;
@@ -1418,6 +1432,7 @@ function renderNameTheLie(container) {
         <textarea class="tool-input" placeholder="The actual truth..." rows="5" id="ntl-truth"></textarea>
         <button class="btn--advance mt-md" id="ntl-finish">Finish</button>
       `;
+      VoiceGuide.speak('Now write the truth. Not a fake positive spin — the actual truth about yourself and this situation.');
       $('ntl-finish').addEventListener('click', () => {
         responses.step3 = $('ntl-truth')?.value || '';
         step++;
@@ -1481,6 +1496,7 @@ function renderResourcing(container) {
           </button>
         </div>
       `;
+      VoiceGuide.speak(stepTexts[step]);
       $('res-next').addEventListener('click', () => { step++; render(); });
 
     } else {
@@ -1695,6 +1711,7 @@ function renderValues(container) {
       `}
     `;
     if (!isLast) {
+      VoiceGuide.speak(prompts[step].q);
       $('val-next').addEventListener('click', () => {
         const ta = container.querySelector('textarea');
         responses.push(ta ? ta.value : '');
@@ -1957,6 +1974,7 @@ function renderGrounding(container) {
       `}
     `;
     if (!isLast) {
+      VoiceGuide.speak(senses[step].prompt);
       $('gs-next').addEventListener('click', () => {
         const ta = container.querySelector('textarea');
         responses.push(ta ? ta.value : '');
@@ -2361,6 +2379,11 @@ function initPWA() {
 // ============================================================
 
 function wireEvents() {
+  // Voice toggle (check-in screen + tool screen)
+  document.querySelectorAll('[data-voice-toggle]').forEach(btn => {
+    btn.addEventListener('click', () => VoiceGuide.toggle());
+  });
+
   // Screen 1
   $('btn-continue-checkin').addEventListener('click', handleContinueCheckin);
 
@@ -2487,6 +2510,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initStressScale();
   wireEvents();
+  VoiceGuide.init();
   initPWA();
   initInstallModal();
   initLegalModals();
